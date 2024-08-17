@@ -1,0 +1,112 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+}
+
+apply from: '../dependencies.gradle'
+
+android {
+    namespace 'io.gari.sample'
+    compileSdk appConfig.compileSdk
+
+    signingConfigs {
+        demo {
+            storeFile file("keys/demo_key.jks")
+            storePassword "gariandroid"
+            keyPassword "gariandroid"
+            keyAlias "gari"
+        }
+    }
+
+    defaultConfig {
+        applicationId "io.gari.sample"
+        minSdk appConfig.minSdk
+        targetSdk appConfig.targetSdk
+        versionCode 1
+        versionName "1.0"
+
+        manifestPlaceholders = [authRedirect: "io.coin.gari"]
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    dataBinding {
+        enabled = true
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            signingConfig signingConfigs.demo
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    packagingOptions {
+        pickFirst 'org/bouncycastle/x509/CertPathReviewerMessages.properties'
+        pickFirst 'org/bouncycastle/x509/CertPathReviewerMessages_de.properties'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+
+    implementation android.coreKtx
+    implementation android.appcompat
+    implementation android.material
+
+    implementation lifeCycle.core
+    implementation lifeCycle.viewModel
+    implementation lifeCycle.liveData
+
+    implementation di.koinCore
+    implementation di.koinCompat
+
+    implementation network.retrofitCore
+    implementation network.retrofitConverterGson
+    implementation network.okHttpLogging
+
+    /* connect for testing published library */
+    implementation 'io.github.gari-network:gari-wallet:0.2'
+
+    /* connect for development purpose */
+//    implementation project(":gari")
+
+    /* connect for testing AAR directly */
+    /*implementation(files("libs/gari-release.aar"))
+    implementation(web3Auth.core) {
+        exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+    }
+    implementation(solana.solanaWeb3) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
+    }*/
+
+    testImplementation unitTesting.junit
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}
